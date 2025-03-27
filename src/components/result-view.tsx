@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Sparkles } from 'lucide-react';
@@ -25,9 +26,55 @@ export function ResultView({ onBack, component }: ResultViewProps) {
     }
     return component as ComponentData;
   });
+  const [processedDescription, setProcessedDescription] = useState<string>('');
+  const [processedPreviewHtml, setProcessedPreviewHtml] = useState<string>('');
   const [error, setError] = useState('');
-  // Estado para almacenar el HTML puro del componente
-  const [purifiedHtml, setPurifiedHtml] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('preview'); // Se añade para controlar las pestañas
+
+  // Función para limpiar texto de caracteres de escape
+  const cleanString = (str: string): string => {
+    if (!str) return '';
+    return str
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\')
+      .replace(/\\t/g, '\t');
+  };
+
+  // Efecto para procesar los datos del componente
+  useEffect(() => {
+    console.log("Component Data:", componentData);
+    
+    // Extraer y procesar la descripción visual
+    if (componentData.visual_description) {
+      setProcessedDescription(cleanString(componentData.visual_description));
+    }
+    
+    // Extraer y procesar el HTML de la vista previa
+    if (componentData.preview_html) {
+      let cleanHtml = cleanString(componentData.preview_html);
+      
+      // Si el HTML está dentro de comillas, quitarlas
+      if (cleanHtml.startsWith('"') && cleanHtml.endsWith('"')) {
+        cleanHtml = cleanHtml.substring(1, cleanHtml.length - 1);
+      }
+      
+      // Comprobar si contiene contenido JSON sin procesar
+      if (cleanHtml.includes('```json') || cleanHtml.includes('"visual_description"')) {
+        try {
+          // Intentar extraer solo el HTML real
+          const htmlMatch = cleanHtml.match(/<([a-z]+).*?>[\s\S]*?<\/\1>/i);
+          if (htmlMatch) {
+            cleanHtml = htmlMatch[0];
+          }
+        } catch (e) {
+          console.error("Error al procesar el HTML:", e);
+        }
+      }
+      
+      setProcessedPreviewHtml(cleanHtml);
+    }
+  }, [componentData]);
 
   const handleModify = async () => {
     if (!modifyPrompt.trim()) {
@@ -55,66 +102,8 @@ export function ResultView({ onBack, component }: ResultViewProps) {
     }
   };
 
-  // Extraer código de componente, vista previa y descripción
+  // Extraer código de componente
   const componentCode = componentData.component_code || '';
-  const previewHtml = componentData.preview_html || '';
-  const description = componentData.visual_description || '';
-
-  // Función para sanitizar strings con escape characters
-  const sanitizeString = (str: string) => {
-    try {
-      // Reemplazar secuencias de escape comunes que puedan causar problemas
-      return str
-        .replace(/\\n/g, '\n')
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, '\\');
-    } catch (e) {
-      console.error('Error sanitizing string:', e);
-      return str;
-    }
-  };
-
-  // Extraer sólo el código del componente sin formato JSON
-  const extractComponentCode = (code: string) => {
-    // Remover marcadores de código markdown y formato JSON
-    const cleanCode = sanitizeString(code);
-    
-    // Intentar extraer sólo el código React/código de componente
-    const importMatch = cleanCode.match(/import\s+React.*?;/s);
-    if (importMatch) {
-      return cleanCode;
-    }
-    
-    // Si no encontramos el import, buscar const Component o const ComponentName
-    const componentMatch = cleanCode.match(/const\s+\w+\s*=\s*\(\s*\)\s*=>\s*{/);
-    if (componentMatch) {
-      const startIndex = cleanCode.indexOf(componentMatch[0]);
-      return cleanCode.substring(startIndex);
-    }
-    
-    return cleanCode;
-  };
-
-  // Procesar el preview_html para extraer solo el HTML real
-  useEffect(() => {
-    if (previewHtml) {
-      // Sanitizar primero el string para eliminar escape characters
-      const sanitized = sanitizeString(previewHtml);
-      
-      // Extraer solo el HTML si está dentro de etiquetas
-      const htmlTagMatch = sanitized.match(/<[^>]+>[\s\S]*<\/[^>]+>/);
-      if (htmlTagMatch) {
-        setPurifiedHtml(htmlTagMatch[0]);
-      } else {
-        // Si no hay etiquetas, probablemente es HTML inválido o texto plano
-        setPurifiedHtml(sanitized);
-      }
-    } else {
-      setPurifiedHtml('');
-    }
-  }, [previewHtml]);
-
-  const cleanComponentCode = extractComponentCode(componentCode);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -125,19 +114,20 @@ export function ResultView({ onBack, component }: ResultViewProps) {
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onBack}>← Back</Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => copyToClipboard(cleanComponentCode)}>
+          <Button variant="outline" onClick={() => copyToClipboard(componentCode)}>
             Copy Code
           </Button>
           <Button>Save Component</Button>
         </div>
       </div>
 
-      {description && (
-        <div className="bg-muted rounded-xl p-4 mb-4">
-          <h3 className="font-medium mb-2">Component Description</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      )}
+      {/* Component Description Section - Siempre mostramos este div pero con mensaje adecuado */}
+      <div className="bg-muted rounded-xl p-4 mb-4">
+        <h3 className="font-medium mb-2">Component Description</h3>
+        <p className="text-sm text-muted-foreground whitespace-pre-line">
+          {processedDescription || "Component based on your description"}
+        </p>
+      </div>
 
       {/* Modification Prompt */}
       <div className="bg-muted rounded-xl p-4">
@@ -165,23 +155,34 @@ export function ResultView({ onBack, component }: ResultViewProps) {
       </div>
 
       {/* Preview and Code Tabs */}
-      <Tabs defaultValue="preview" className="w-full">
+      <Tabs 
+        defaultValue="preview" 
+        className="w-full" 
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList className="w-full justify-start">
           <TabsTrigger value="preview">Preview</TabsTrigger>
           <TabsTrigger value="code">Code</TabsTrigger>
         </TabsList>
-        <TabsContent value="preview" className="py-4 flex justify-center items-center">
-          {purifiedHtml ? (
-            <div dangerouslySetInnerHTML={{ __html: purifiedHtml }} />
-          ) : (
-            <div className="p-6 text-center text-muted-foreground">
-              No preview available
-            </div>
-          )}
-        </TabsContent>
-        <TabsContent value="code" className="p-4 bg-muted rounded-lg font-mono text-sm">
-          <pre>{cleanComponentCode || `// No code generated yet`}</pre>
-        </TabsContent>
+        
+        {activeTab === "preview" && (
+          <div className="flex justify-center items-center p-12 border rounded-lg mt-2">
+            {processedPreviewHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: processedPreviewHtml }} />
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <p>No preview available</p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {activeTab === "code" && (
+          <div className="p-4 bg-muted rounded-lg font-mono text-sm mt-2">
+            <pre>{componentCode || `// No code generated yet`}</pre>
+          </div>
+        )}
       </Tabs>
     </div>
   );
