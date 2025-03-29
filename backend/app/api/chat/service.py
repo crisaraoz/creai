@@ -86,14 +86,17 @@ async def generate_qwen_response(messages: List[Dict[str, str]]) -> Dict[str, An
 Create a React component based on this description: "{prompt_content}".
 Return a JSON with:
 - visual_description: brief description
-- preview_html: HTML preview with styles
+- preview_html: HTML preview with inline styles (make sure all styles are inline)
 - component_code: complete React component code
+
+IMPORTANT: For the preview_html, ensure all styles are inline and DO NOT wrap the component in additional divs.
+The preview_html should ONLY contain the actual component HTML with NO extra container divs.
 """
         
         # Sistema message que enfatiza la generación de JSON
         system_message = {
             "role": "system", 
-            "content": "You are a UI component generator. Return a JSON with visual_description, preview_html, and component_code fields."
+            "content": "You are a UI component generator. Return a JSON with visual_description, preview_html, and component_code fields. Make sure the preview_html has all styles inline and is properly formatted. DO NOT wrap the component in extra divs."
         }
         
         # Mensaje del usuario con el prompt formateado
@@ -105,7 +108,6 @@ Return a JSON with:
         print("[DEBUG] Enviando mensaje a la API...")
         
         # Construir el JSON de la solicitud con los mensajes formateados
-        # Ajustamos el formato para que coincida exactamente con la documentación de DashScope
         payload = {
             "model": "qwen-max",
             "input": {
@@ -133,67 +135,63 @@ Return a JSON with:
                         response_json = json.loads(response_text)
                         print(f"[DEBUG] Respuesta parseada: {str(response_json)[:200]}...")
                         
-                        # Intentar extraer el mensaje (estructura específica de DashScope)
+                        # Intentar extraer el mensaje
                         if "output" in response_json:
                             output = response_json.get("output", {})
                             print(f"[DEBUG] Output: {str(output)[:200]}...")
                             
                             if "message" in output:
                                 assistant_message = output.get("message", {}).get("content", "")
-                                print(f"[DEBUG] Mensaje (format 1): {assistant_message[:200]}...")
                             elif "choices" in output and len(output["choices"]) > 0:
                                 assistant_message = output["choices"][0]["message"]["content"]
-                                print(f"[DEBUG] Mensaje (format 2): {assistant_message[:200]}...")
                             else:
                                 print("[DEBUG] No se encontró el mensaje en los formatos esperados")
                                 assistant_message = str(output)
-                        else:
-                            print("[DEBUG] No se encontró 'output' en la respuesta")
-                            assistant_message = str(response_json)
                             
-                        # Crear un componente de respuesta directo con todo el texto
-                        return {
-                            "status": "success",
-                            "message": {
-                                "visual_description": "Component based on your description",
-                                "preview_html": f"<div style='white-space: pre-wrap; word-break: break-all; max-width: 100%; overflow: auto; padding: 16px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px;'><pre>{assistant_message}</pre></div>",
-                                "component_code": f"import React from 'react';\n\nconst Component = () => {{\n  return (\n    <div>\n      <h3>Generated Component:</h3>\n      <pre style={{{{ overflowX: 'auto', maxWidth: '100%', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}}}>{{`{assistant_message}`}}</pre>\n    </div>\n  );\n}};\n\nexport default Component;"
-                            }
-                        }
+                            print(f"[DEBUG] Mensaje extraído: {assistant_message[:200]}...")
+                            
+                            # Intentar extraer el JSON del mensaje
+                            try:
+                                # Buscar el contenido JSON dentro de los backticks
+                                import re
+                                json_match = re.search(r'```json\s*(.*?)\s*```', assistant_message, re.DOTALL)
+                                if json_match:
+                                    json_content = json_match.group(1)
+                                    component_data = json.loads(json_content)
+                                    
+                                    # Asegurarse de que el HTML no tenga divs contenedores adicionales
+                                    if "preview_html" in component_data:
+                                        preview_html = component_data["preview_html"]
+                                        
+                                        # Eliminar cualquier div wrapper que solo contenga otro elemento
+                                        preview_html = re.sub(r'<div[^>]*>\s*(<[^>]+>[^<]*</[^>]+>)\s*</div>', r'\1', preview_html)
+                                        
+                                        # Si el HTML es solo texto, envolverlo en un elemento span
+                                        if not re.search(r'<[^>]+>', preview_html):
+                                            preview_html = f'<span style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 4px;">{preview_html}</span>'
+                                        
+                                        component_data["preview_html"] = preview_html
+                                    
+                                    return {
+                                        "status": "success",
+                                        "message": component_data
+                                    }
+                                else:
+                                    raise ValueError("No se encontró JSON válido en la respuesta")
+                            except Exception as e:
+                                print(f"[DEBUG] Error procesando JSON: {str(e)}")
+                                return create_fallback_component(prompt_content)
+                        else:
+                            return create_fallback_component(prompt_content)
                     except Exception as e:
                         print(f"[DEBUG] Error procesando respuesta: {str(e)}")
-                        # Devolver error como componente para ver en UI
-                        return {
-                            "status": "success",
-                            "message": {
-                                "visual_description": "Error debugging component",
-                                "preview_html": f"<div style='padding: 16px; border: 1px solid red;'><h3>Error:</h3><p>{str(e)}</p><pre>{response_text[:1000]}</pre></div>",
-                                "component_code": f"import React from 'react';\n\nconst Component = () => {{\n  return (\n    <div style={{{{ border: '1px solid red', padding: '16px' }}}}>\n      <h3>Error:</h3>\n      <p>{str(e)}</p>\n      <pre style={{{{ overflowX: 'auto' }}}}>{response_text[:1000]}</pre>\n    </div>\n  );\n}};\n\nexport default Component;"
-                            }
-                        }
+                        return create_fallback_component(prompt_content)
                 else:
-                    # Procesar respuesta de error como componente para ver en UI
                     print(f"[DEBUG] Error status: {response.status}")
-                    return {
-                        "status": "success",
-                        "message": {
-                            "visual_description": "API Error Response",
-                            "preview_html": f"<div style='padding: 16px; border: 1px solid red;'><h3>API Error (Status {response.status}):</h3><pre>{response_text}</pre></div>",
-                            "component_code": f"import React from 'react';\n\nconst Component = () => {{\n  return (\n    <div style={{{{ border: '1px solid red', padding: '16px' }}}}>\n      <h3>API Error (Status {response.status}):</h3>\n      <pre style={{{{ overflowX: 'auto' }}}}>{response_text}</pre>\n    </div>\n  );\n}};\n\nexport default Component;"
-                        }
-                    }
-                    
+                    return create_fallback_component(prompt_content)
     except Exception as e:
         print(f"[DEBUG] Excepción general: {str(e)}")
-        # Devolver error como componente para ver en UI
-        return {
-            "status": "success",
-            "message": {
-                "visual_description": "Exception during API call",
-                "preview_html": f"<div style='padding: 16px; border: 1px solid red;'><h3>Exception:</h3><p>{str(e)}</p></div>",
-                "component_code": f"import React from 'react';\n\nconst Component = () => {{\n  return (\n    <div style={{{{ border: '1px solid red', padding: '16px' }}}}>\n      <h3>Exception:</h3>\n      <p>{str(e)}</p>\n    </div>\n  );\n}};\n\nexport default Component;"
-            }
-        }
+        return create_fallback_component(prompt_content)
 
 def extract_json_content(text: str) -> str:
     """
@@ -231,7 +229,7 @@ def process_component_data(json_content, prompt_content):
             if field == 'visual_description':
                 json_content[field] = f"UI component based on: {prompt_content}"
             elif field == 'preview_html':
-                json_content[field] = "<div>Preview not available</div>"
+                json_content[field] = f'<div style="display: inline-flex; padding: 16px; border-radius: 8px;">{prompt_content}</div>'
             elif field == 'component_code':
                 json_content[field] = create_default_component_code(prompt_content)
     
@@ -239,8 +237,34 @@ def process_component_data(json_content, prompt_content):
     if 'preview_html' in json_content:
         preview_html = json_content['preview_html']
         
-        # Reemplazar imágenes relativas o rotas con placeholders
-        preview_html = fix_preview_images(preview_html, prompt_content)
+        # Si el preview_html es un string JSON, intentar extraer solo el HTML
+        if isinstance(preview_html, str) and ('"preview_html"' in preview_html or '```json' in preview_html):
+            try:
+                import re
+                # Intentar extraer el HTML del JSON
+                match = re.search(r'"preview_html":\s*"([^"]+)"', preview_html)
+                if match:
+                    preview_html = match.group(1).replace('\\\"', '"').replace('\\n', '\n')
+                else:
+                    # Si no se encuentra el patrón, buscar cualquier HTML válido
+                    html_match = re.search(r'<([a-z]+).*?>[\s\S]*?<\/\1>', preview_html, re.I)
+                    if html_match:
+                        preview_html = html_match.group(0)
+            except Exception as e:
+                print(f"Error processing preview_html: {str(e)}")
+                preview_html = f'<div style="display: inline-flex; padding: 16px; border-radius: 8px;">{prompt_content}</div>'
+        
+        # Asegurarse de que el componente use display: inline-flex para evitar espacios innecesarios
+        if not any(style in preview_html.lower() for style in ['display:', 'display: ']):
+            preview_html = preview_html.replace('<div', '<div style="display: inline-flex;"')
+        elif not any(display in preview_html.lower() for display in ['inline-flex', 'inline-block', 'flex']):
+            preview_html = preview_html.replace('display:', 'display: inline-flex;')
+        
+        # Eliminar cualquier div contenedor adicional que pueda causar espacios
+        preview_html = re.sub(r'<div[^>]*style="[^"]*display:\s*flex[^"]*"[^>]*>\s*(<div)', r'\1', preview_html)
+        
+        # Asegurarse de que no hay espacios en blanco innecesarios
+        preview_html = preview_html.strip()
         
         json_content['preview_html'] = preview_html
     
@@ -565,18 +589,29 @@ def create_fallback_component(prompt_content):
     if not component_name or not component_name[0].isalpha():
         component_name = "UIComponent"
     
+    # Determinar color basado en el prompt
+    bg_color = "#f0f0f0"  # Default gris claro
+    text_color = "#000000"  # Default negro
+    
+    if "red" in prompt_content.lower():
+        bg_color = "#ff3333"
+        text_color = "#ffffff"
+    elif "green" in prompt_content.lower():
+        bg_color = "#33cc33"
+        text_color = "#ffffff"
+    elif "blue" in prompt_content.lower():
+        bg_color = "#3366ff"
+        text_color = "#ffffff"
+    elif "yellow" in prompt_content.lower():
+        bg_color = "#ffcc00"
+        text_color = "#000000"
+    
+    # Generar HTML simple sin divs contenedores adicionales
+    preview_html = f'<span style="display: inline-block; padding: 12px 24px; background-color: {bg_color}; color: {text_color}; border-radius: 8px; font-family: Arial, sans-serif;">This is a {prompt_content}</span>'
+    
     component = {
         "visual_description": f"A UI component for: {prompt_content}",
-        "preview_html": f"""
-<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; max-width: 400px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-  <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">{prompt_content}</div>
-  <div style="background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 12px;">
-    <button style="background-color: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-      Action
-    </button>
-  </div>
-</div>
-""",
+        "preview_html": preview_html,
         "component_code": create_default_component_code(prompt_content, component_name)
     }
     

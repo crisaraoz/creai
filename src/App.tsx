@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Menu, Sparkles, Smartphone, Monitor, Home, UserCircle, Search, Settings, ShoppingCart, MessageSquare, Newspaper, Mail, ClipboardList, Building2, Calendar, PieChart, Clock, Lightbulb, ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -53,6 +52,7 @@ function App() {
     try {
       // Utilizar el servicio API
       const componentData = await generateComponent(prompt, selectedPlatform);
+      console.log("API Result:", JSON.stringify(componentData, null, 2));
       setGeneratedComponent(componentData);
       setShowResult(true);
     } catch (error: unknown) {

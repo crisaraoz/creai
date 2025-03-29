@@ -15,6 +15,32 @@ interface ApiResponse {
 }
 
 /**
+ * Función para extraer HTML limpio de un string potencialmente con formato JSON
+ */
+function extractCleanHtml(htmlString: string): string {
+  // Si es vacío o no es string, retornar vacío
+  if (!htmlString || typeof htmlString !== 'string') return '';
+  
+  // Limpiar secuencias de escape
+  let cleaned = htmlString
+    .replace(/\\n/g, '\n')
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\')
+    .replace(/\\t/g, '\t');
+  
+  // Eliminar comillas al inicio y final
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.substring(1, cleaned.length - 1);
+  }
+  
+  // Buscar etiquetas HTML completas
+  const htmlMatch = cleaned.match(/<div[\s\S]*?<\/div>/);
+  if (htmlMatch) return htmlMatch[0];
+  
+  return cleaned;
+}
+
+/**
  * Genera un componente basado en el prompt y la plataforma
  */
 export async function generateComponent(prompt: string, platform: string): Promise<ComponentData> {
@@ -84,6 +110,12 @@ export async function generateComponent(prompt: string, platform: string): Promi
         }
       }
       
+      // Si llegamos aquí, tenemos los datos del componente pero puede que el HTML aún tenga formato JSON
+      // Limpiamos el preview_html si existe
+      if (typeof componentData === 'object' && componentData.preview_html) {
+        componentData.preview_html = extractCleanHtml(componentData.preview_html);
+      }
+      
       return componentData as ComponentData;
     } else {
       throw new Error(data.message || 'Error generating component');
@@ -136,6 +168,11 @@ export async function modifyComponent(modifyPrompt: string, currentCode: string)
             }
           }
         }
+      }
+      
+      // Limpiamos el preview_html si existe
+      if (typeof componentData === 'object' && componentData.preview_html) {
+        componentData.preview_html = extractCleanHtml(componentData.preview_html);
       }
       
       return componentData as ComponentData;
