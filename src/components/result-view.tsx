@@ -9,7 +9,7 @@ interface ResultViewProps {
   onBack: () => void;
   component: ComponentData | string;
   onModify?: (modifyPrompt: string) => void;
-  onModifySuccess?: () => void;
+  onModifySuccess?: (newComponentData: ComponentData) => void;
   onModifyError?: (error: string) => void;
   showTabs?: boolean;
   showDescription?: boolean;
@@ -44,6 +44,19 @@ export function ResultView({
   const [processedPreviewHtml, setProcessedPreviewHtml] = useState<string>('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('preview'); // Se añade para controlar las pestañas
+
+  // Efecto para actualizar los datos del componente cuando cambia desde las props
+  useEffect(() => {
+    if (typeof component === 'string') {
+      try {
+        setComponentData(JSON.parse(component));
+      } catch {
+        setComponentData({ component_code: component });
+      }
+    } else {
+      setComponentData(component as ComponentData);
+    }
+  }, [component]);
 
   // Función para limpiar texto de caracteres de escape
   const cleanString = (str: string): string => {
@@ -110,11 +123,12 @@ export function ResultView({
         componentData.component_code || ""
       );
       
+      // Actualizar el estado local con los nuevos datos
       setComponentData(newComponentData);
       
-      // Notificar el éxito de la modificación
+      // Notificar el éxito de la modificación y pasar los nuevos datos
       if (onModifySuccess) {
-        onModifySuccess();
+        onModifySuccess(newComponentData);
       }
     } catch (error: unknown) {
       console.error('Error modifying component:', error);

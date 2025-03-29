@@ -212,8 +212,10 @@ function App() {
                   onModify={(modifyPrompt) => {
                     console.log(`Modifying component: "${modifyPrompt}"`);
                   }}
-                  onModifySuccess={() => {
+                  onModifySuccess={(newComponentData) => {
                     console.log(`Component modified successfully`);
+                    // Actualizar el componente principal
+                    setGeneratedComponent(newComponentData);
                   }}
                   onModifyError={(error) => {
                     console.log(`Modification error: ${error}`);
