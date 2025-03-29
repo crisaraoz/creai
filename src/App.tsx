@@ -147,16 +147,16 @@ function App() {
   }, [showDropdown]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header - Bolt Style */}
+      <header className="border-b border-[rgba(255,255,255,0.1)] px-6 py-4 flex items-center justify-between bolt-header">
         <div className="flex items-center space-x-2">
           <span className="font-bold text-xl">creAI</span>
-          <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">ALPHA</span>
+          <span className="bg-[rgba(255,255,255,0.1)] text-xs px-2 py-0.5 rounded">ALPHA</span>
         </div>
         <div className="flex items-center space-x-4">
           {/* <span className="text-muted-foreground">20 gens left</span> */}
-          <Button variant="ghost" size="icon">
+          <Button variant="bolt" size="icon">
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -168,8 +168,8 @@ function App() {
           <>
             <h1 className="text-2xl font-bold mb-6 max-w-2xl mx-auto">What should we design?</h1>
             
-            {/* Input Area */}
-            <div className="bg-muted rounded-xl p-3 mb-6 max-w-2xl mx-auto">
+            {/* Input Area - Bolt Style */}
+            <div className="bg-[rgba(255,255,255,0.05)] rounded-xl p-3 mb-6 max-w-2xl mx-auto bolt-card">
               <Textarea 
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -177,11 +177,11 @@ function App() {
                 className="bg-transparent border-none mb-2 min-h-[40px] focus-visible:ring-0"
               />
               
-              {/* Platform Toggle */}
+              {/* Platform Toggle - Bolt Style */}
               <div className="flex items-center justify-between">
-                <div className="flex space-x-2 bg-background rounded-lg p-1">
+                <div className="flex space-x-2 bg-[rgba(255,255,255,0.08)] rounded-lg p-1">
                   <Button 
-                    variant={selectedPlatform === 'Mobile' ? 'soft-blue-active' : 'soft-blue'}
+                    variant={selectedPlatform === 'Mobile' ? 'bolt-accent' : 'bolt'}
                     size="sm"
                     onClick={() => setPlatform('Mobile')}
                     className={`flex items-center space-x-1 ${selectedPlatform === 'Mobile' ? 'scale-105 z-10' : ''}`}
@@ -190,7 +190,7 @@ function App() {
                     <span>Mobile</span>
                   </Button>
                   <Button 
-                    variant={selectedPlatform === 'Web' ? 'soft-blue-active' : 'soft-blue'}
+                    variant={selectedPlatform === 'Web' ? 'bolt-accent' : 'bolt'}
                     size="sm"
                     onClick={() => setPlatform('Web')}
                     className={`flex items-center space-x-1 ${selectedPlatform === 'Web' ? 'scale-105 z-10' : ''}`}
@@ -201,14 +201,14 @@ function App() {
                 </div>
                 <div>
                   {isLoading ? (
-                    <Button disabled className="flex items-center gap-2">
+                    <Button disabled variant="bolt" className="flex items-center gap-2">
                       <span className="animate-spin mr-1">
                         <Sparkles className="h-4 w-4" />
                       </span>
                       Generating...
                     </Button>
                   ) : (
-                    <Button onClick={() => handleGenerate()} className="flex items-center gap-2">
+                    <Button onClick={() => handleGenerate()} variant="bolt-accent" className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4" />
                       Generate
                     </Button>
@@ -217,14 +217,14 @@ function App() {
               </div>
             </div>
 
-            {/* Template Options */}
+            {/* Template Options - Bolt Style */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 max-w-2xl mx-auto">
               {displayedOptions.map((option, index) => (
                 <Button 
                   key={index}
-                  variant="soft-blue" 
+                  variant="bolt" 
                   className={`justify-start h-auto py-3 px-4 opacity-90 hover:opacity-100 transition-all template-option ${
-                    prompt === option.prompt ? 'bg-[hsl(var(--soft-blue-active))] text-[hsl(var(--soft-blue-active-foreground))] shadow-md border border-[hsl(var(--soft-blue-active-foreground))]' : ''
+                    prompt === option.prompt ? 'bg-[hsl(165,80%,40%)] text-white shadow-md' : ''
                   }`}
                   onClick={() => handleOptionClick(option)}
                   disabled={isLoading}
@@ -245,11 +245,11 @@ function App() {
               ))}
             </div>
 
-            {/* Show All Button */}
+            {/* Show All Button - Bolt Style */}
             {!showAllOptions && (
               <div className="max-w-2xl mx-auto">
                 <Button 
-                  variant="soft-blue" 
+                  variant="bolt" 
                   onClick={() => setShowAllOptions(true)}
                   className="flex items-center gap-1 w-full justify-center"
                 >
@@ -267,14 +267,14 @@ function App() {
             )}
           </>
         ) : (
-          // Resultado con layout de dos columnas
+          // Resultado con layout de dos columnas - Bolt Style
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Panel izquierdo - Descripción y Modificador */}
             <div className="lg:col-span-1">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
                   <Button 
-                    variant="ghost" 
+                    variant="bolt" 
                     size="sm" 
                     onClick={() => setShowResult(false)}
                   >
@@ -282,7 +282,7 @@ function App() {
                   </Button>
                 </div>
                 
-                <div className="bg-muted rounded-xl p-4 mb-4 flex-grow">
+                <div className="bg-[rgba(255,255,255,0.05)] rounded-xl p-4 mb-4 flex-grow bolt-card">
                   <h3 className="font-medium mb-2">Component Description</h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
                     {generatedComponent?.visual_description || "Component based on your description"}
@@ -310,16 +310,17 @@ function App() {
               </div>
             </div>
             
-            {/* Panel derecho - Preview y código */}
+            {/* Panel derecho - Preview y código - Bolt Style */}
             <div className="lg:col-span-2">
               <div className="flex justify-end mb-4">
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => navigator.clipboard.writeText(generatedComponent?.component_code || '')}>
+                  <Button variant="bolt" onClick={() => navigator.clipboard.writeText(generatedComponent?.component_code || '')}>
                     Copy Code
                   </Button>
                   
                   <div id="save-dropdown-container" className="relative">
                     <Button 
+                      variant="bolt-accent"
                       className="flex items-center gap-2"
                       onClick={() => setShowDropdown(!showDropdown)}
                     >
@@ -328,13 +329,13 @@ function App() {
                     </Button>
                     
                     {showDropdown && (
-                      <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
-                        <div className="py-1 border border-gray-200 rounded-md bg-popover text-popover-foreground">
-                          <div className="px-4 py-2 text-sm font-medium border-b">Select Language</div>
+                      <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[#1a1a1a] ring-1 ring-[rgba(255,255,255,0.1)] z-[9999]">
+                        <div className="py-1 border border-[rgba(255,255,255,0.1)] rounded-md bg-[rgba(255,255,255,0.05)]">
+                          <div className="px-4 py-2 text-sm font-medium border-b border-[rgba(255,255,255,0.1)]">Select Language</div>
                           {languageOptions.map((lang) => (
                             <button
                               key={lang.id}
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-left w-full hover:bg-accent hover:text-accent-foreground"
+                              className="flex items-center gap-2 px-4 py-2 text-sm text-left w-full hover:bg-[rgba(255,255,255,0.1)]"
                               onClick={() => {
                                 handleSaveComponent(lang.id);
                                 setShowDropdown(false);
@@ -352,9 +353,9 @@ function App() {
               </div>
               
               <Tabs defaultValue="preview" className="w-full" onValueChange={handleTabChange}>
-                <TabsList className="w-full justify-start">
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                  <TabsTrigger value="code">Code</TabsTrigger>
+                <TabsList className="w-full justify-start bg-[rgba(255,255,255,0.05)] p-1 rounded-lg">
+                  <TabsTrigger value="preview" className="data-[state=active]:bg-[hsl(165,80%,40%)] data-[state=active]:text-white">Preview</TabsTrigger>
+                  <TabsTrigger value="code" className="data-[state=active]:bg-[hsl(165,80%,40%)] data-[state=active]:text-white">Code</TabsTrigger>
                 </TabsList>
                 
                 <div className="mt-2">
@@ -362,7 +363,7 @@ function App() {
                     <>
                       <div className="tab-content" data-state={activeTab === 'preview' ? 'active' : 'inactive'}>
                         <div 
-                          className="border rounded-lg flex justify-center items-center p-4"
+                          className="border border-[rgba(255,255,255,0.1)] rounded-lg flex justify-center items-center p-4 bg-[rgba(255,255,255,0.03)]"
                           dangerouslySetInnerHTML={{ 
                             __html: generatedComponent.preview_html || '<div class="text-center p-4">No preview available</div>' 
                           }}
@@ -370,7 +371,7 @@ function App() {
                       </div>
                       
                       <div className="tab-content" data-state={activeTab === 'code' ? 'active' : 'inactive'}>
-                        <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                        <div className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-lg font-mono text-sm">
                           <pre>{generatedComponent.component_code || `// No code generated yet`}</pre>
                         </div>
                       </div>
