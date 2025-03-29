@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Menu, Sparkles, Smartphone, Monitor, Home, UserCircle, Search, Settings, ShoppingCart, MessageSquare, Newspaper, Mail, ClipboardList, Building2, Calendar, PieChart, Clock, Lightbulb, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, Sparkles, Smartphone, Monitor, Home, UserCircle, Search, Settings, ShoppingCart, MessageSquare, Newspaper, Mail, ClipboardList, Building2, Calendar, PieChart, Clock, Lightbulb, ChevronDown, Code, Download } from 'lucide-react';
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ResultView } from '@/components/result-view';
 import { generateComponent, ComponentData } from '@/lib/api-service';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { languageOptions, convertComponentCode, generateFileName } from "@/lib/code-converter";
 
 function App() {
   const [prompt, setPrompt] = useState('');
@@ -16,6 +17,7 @@ function App() {
   const [generatedComponent, setGeneratedComponent] = useState<ComponentData | null>(null);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('preview');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const options = [
     { icon: <Home size={20} />, label: 'Home screen', prompt: 'Create a clean home screen with recent activity feed and quick action buttons' },
@@ -81,6 +83,68 @@ function App() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
+
+  // Function to handle saving the component code in a specific language
+  const handleSaveComponent = (languageId: string) => {
+    console.log("Saving component in language:", languageId);
+    
+    if (!generatedComponent?.component_code) {
+      console.error("No component code to save");
+      return;
+    }
+
+    try {
+      // Get the language option
+      const langOption = languageOptions.find(lang => lang.id === languageId);
+      if (!langOption) {
+        console.error("Language option not found:", languageId);
+        return;
+      }
+
+      // Extract component name from the code
+      const componentNameMatch = generatedComponent.component_code.match(/(?:function|const)\s+([A-Za-z0-9_]+)/);
+      const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
+      console.log("Component name:", componentName);
+
+      // Convert the code to the selected language
+      const convertedCode = convertComponentCode(generatedComponent.component_code, languageId);
+      
+      // Generate file name
+      const fileName = generateFileName(componentName, langOption);
+      console.log("Saving as:", fileName);
+
+      // Create a blob and download it
+      const blob = new Blob([convertedCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('Error saving component:', error);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (showDropdown && !(event.target as Element).closest('#save-dropdown-container')) {
+        setShowDropdown(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,7 +317,37 @@ function App() {
                   <Button variant="outline" onClick={() => navigator.clipboard.writeText(generatedComponent?.component_code || '')}>
                     Copy Code
                   </Button>
-                  <Button>Save Component</Button>
+                  
+                  <div id="save-dropdown-container" className="relative">
+                    <Button 
+                      className="flex items-center gap-2"
+                      onClick={() => setShowDropdown(!showDropdown)}
+                    >
+                      <Download className="h-4 w-4" />
+                      Save Component
+                    </Button>
+                    
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
+                        <div className="py-1 border border-gray-200 rounded-md bg-popover text-popover-foreground">
+                          <div className="px-4 py-2 text-sm font-medium border-b">Select Language</div>
+                          {languageOptions.map((lang) => (
+                            <button
+                              key={lang.id}
+                              className="flex items-center gap-2 px-4 py-2 text-sm text-left w-full hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => {
+                                handleSaveComponent(lang.id);
+                                setShowDropdown(false);
+                              }}
+                            >
+                              <Code className="h-4 w-4" />
+                              <span>{lang.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               

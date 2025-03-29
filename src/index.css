@@ -107,6 +107,12 @@
   color: hsl(var(--soft-blue-active-foreground));
 }
 
+/* Fix for dropdown menu visibility */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
 /* Template option button styles */
 .template-option {
   position: relative;
@@ -152,4 +158,21 @@ button {
 
 .tab-content[data-state="active"] {
   display: block;
+}
+
+/* Custom dropdown styles */
+#save-dropdown-container .absolute {
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
