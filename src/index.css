@@ -107,6 +107,39 @@
   color: hsl(var(--soft-blue-active-foreground));
 }
 
+/* Template option button styles */
+.template-option {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.template-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.template-option:active {
+  transform: translateY(0);
+}
+
+.template-option:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.template-option:hover:after {
+  opacity: 1;
+}
+
 /* Add smooth transitions to all buttons */
 button {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
