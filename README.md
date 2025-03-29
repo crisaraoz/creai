@@ -6,14 +6,27 @@ A modern UI component generator that uses AI to create customizable UI component
 
 See how easy it is to create components with Component CreAI:
 
-### 1. Start with a description
+### Web Version
+
+#### 1. Start with a description
 ![Initial screen](./assets/images/initial-screen.png)
 
-### 2. Enter your component details
+#### 2. Enter your component details
 ![Component description](./assets/images/component-description.png)
 
-### 3. Get your generated component
+#### 3. Get your generated component
 ![Generated component](./assets/images/generated-component.png)
+
+### Mobile Version
+
+#### 1. Start with a description
+![Mobile initial screen](./assets/images/initial-screen-mobile.png)
+
+#### 2. Enter your component details
+![Mobile component description](./assets/images/component-description-mobile.png)
+
+#### 3. Get your generated component
+![Mobile generated component](./assets/images/generated-component-mobile.png)
 
 ## 🚀 Features
 
