@@ -83,7 +83,6 @@ function App() {
         </div>
         <div className="flex items-center space-x-4">
           {/* <span className="text-muted-foreground">20 gens left</span> */}
-          <Button>Get Pro</Button>
           <Button variant="ghost" size="icon">
             <Menu className="h-5 w-5" />
           </Button>
@@ -109,19 +108,19 @@ function App() {
               <div className="flex items-center justify-between">
                 <div className="flex space-x-2 bg-background rounded-lg p-1">
                   <Button 
-                    variant={selectedPlatform === 'Mobile' ? 'secondary' : 'ghost'}
+                    variant={selectedPlatform === 'Mobile' ? 'soft-blue-active' : 'soft-blue'}
                     size="sm"
                     onClick={() => setPlatform('Mobile')}
-                    className="flex items-center space-x-1"
+                    className={`flex items-center space-x-1 ${selectedPlatform === 'Mobile' ? 'scale-105 z-10' : ''}`}
                   >
                     <Smartphone className="h-4 w-4" />
                     <span>Mobile</span>
                   </Button>
                   <Button 
-                    variant={selectedPlatform === 'Web' ? 'secondary' : 'ghost'}
+                    variant={selectedPlatform === 'Web' ? 'soft-blue-active' : 'soft-blue'}
                     size="sm"
                     onClick={() => setPlatform('Web')}
-                    className="flex items-center space-x-1"
+                    className={`flex items-center space-x-1 ${selectedPlatform === 'Web' ? 'scale-105 z-10' : ''}`}
                   >
                     <Monitor className="h-4 w-4" />
                     <span>Web</span>
@@ -150,8 +149,8 @@ function App() {
               {displayedOptions.map((option, index) => (
                 <Button 
                   key={index}
-                  variant="outline" 
-                  className="justify-start h-auto py-3 px-4"
+                  variant="soft-blue" 
+                  className="justify-start h-auto py-3 px-4 opacity-90 hover:opacity-100"
                   onClick={() => handleOptionClick(option.label)}
                 >
                   <div className="flex items-center">
@@ -166,12 +165,12 @@ function App() {
             {!showAllOptions && (
               <div className="max-w-2xl mx-auto">
                 <Button 
-                  variant="ghost" 
+                  variant="soft-blue" 
                   onClick={() => setShowAllOptions(true)}
-                  className="flex items-center gap-1 text-muted-foreground"
+                  className="flex items-center gap-1 w-full justify-center"
                 >
                   <ChevronDown className="h-4 w-4" />
-                  Show all
+                  Show all options
                 </Button>
               </div>
             )}

@@ -19,6 +19,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        "soft-blue": 
+          "bg-[hsl(var(--soft-blue))] text-[hsl(var(--soft-blue-foreground))] hover:bg-[hsl(var(--soft-blue-hover))]",
+        "soft-blue-active": 
+          "bg-[hsl(var(--soft-blue-active))] text-[hsl(var(--soft-blue-active-foreground))] shadow-md border border-[hsl(var(--soft-blue-active-foreground))] font-medium",
       },
       size: {
         default: "h-9 px-4 py-2",
