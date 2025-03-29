@@ -23,6 +23,10 @@ const buttonVariants = cva(
           "bg-[hsl(var(--soft-blue))] text-[hsl(var(--soft-blue-foreground))] hover:bg-[hsl(var(--soft-blue-hover))]",
         "soft-blue-active": 
           "bg-[hsl(var(--soft-blue-active))] text-[hsl(var(--soft-blue-active-foreground))] shadow-md border border-[hsl(var(--soft-blue-active-foreground))] font-medium",
+        "bolt": 
+          "bg-[rgba(255,255,255,0.05)] text-white hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)]",
+        "bolt-accent": 
+          "bg-[hsl(165,80%,40%)] text-white hover:bg-[hsl(165,80%,45%)]",
       },
       size: {
         default: "h-9 px-4 py-2",

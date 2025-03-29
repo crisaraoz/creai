@@ -44,40 +44,40 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 13% 8%; /* Darker background like Bolt UI */
     --foreground: 210 40% 98%;
  
-    --card: 222.2 84% 4.9%;
+    --card: 220 13% 10%; /* Slightly lighter than background */
     --card-foreground: 210 40% 98%;
  
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 13% 10%;
     --popover-foreground: 210 40% 98%;
  
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
  
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 220 13% 15%; /* Darker secondary tone */
     --secondary-foreground: 210 40% 98%;
     
-    /* Soft blue colors for dark mode */
-    --soft-blue: 210 70% 30%;
-    --soft-blue-hover: 210 70% 35%;
-    --soft-blue-foreground: 210 100% 90%;
+    /* Bolt-style blue accent colors */
+    --soft-blue: 165 80% 40%; /* Teal-like accent color for Bolt */
+    --soft-blue-hover: 165 80% 45%;
+    --soft-blue-foreground: 0 0% 100%;
     
-    --soft-blue-active: 210 80% 50%;
-    --soft-blue-active-foreground: 210 100% 98%;
+    --soft-blue-active: 165 80% 50%;
+    --soft-blue-active-foreground: 0 0% 100%;
  
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 220 13% 15%;
     --muted-foreground: 215 20.2% 65.1%;
  
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 220 13% 15%;
     --accent-foreground: 210 40% 98%;
  
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
  
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 220 13% 15%;
+    --input: 220 13% 15%;
     --ring: 212.7 26.8% 83.9%;
   }
 }
@@ -87,7 +87,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground dark;
   }
 }
 
@@ -118,11 +118,12 @@
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  border-radius: 0.75rem; /* More rounded corners like Bolt UI */
 }
 
 .template-option:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .template-option:active {
@@ -146,9 +147,10 @@
   opacity: 1;
 }
 
-/* Add smooth transitions to all buttons */
+/* Bolt-style buttons with slightly rounded corners */
 button {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.5rem; /* Slightly rounded corners like Bolt UI */
 }
 
 /* Estilos personalizados para las pestañas */
@@ -175,4 +177,30 @@ button {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* Bolt specific styles */
+.bolt-input {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.bolt-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.bolt-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+}
+
+.bolt-accent-button {
+  background-color: hsl(165, 80%, 40%);
+  color: white;
+  border-radius: 0.5rem;
+}
+
+.bolt-accent-button:hover {
+  background-color: hsl(165, 80%, 45%);
 }
