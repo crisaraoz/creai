@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -59,16 +58,15 @@ export function ResultView({ onBack, component }: ResultViewProps) {
         cleanHtml = cleanHtml.substring(1, cleanHtml.length - 1);
       }
       
-      // Comprobar si contiene contenido JSON sin procesar
-      if (cleanHtml.includes('```json') || cleanHtml.includes('"visual_description"')) {
+      // Extraer solo el HTML del componente si está dentro de un bloque JSON
+      if (cleanHtml.includes('"preview_html"')) {
         try {
-          // Intentar extraer solo el HTML real
-          const htmlMatch = cleanHtml.match(/<([a-z]+).*?>[\s\S]*?<\/\1>/i);
-          if (htmlMatch) {
-            cleanHtml = htmlMatch[0];
+          const match = cleanHtml.match(/"preview_html":\s*"([^"]+)"/);
+          if (match && match[1]) {
+            cleanHtml = match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
           }
         } catch (e) {
-          console.error("Error al procesar el HTML:", e);
+          console.error("Error al extraer preview_html:", e);
         }
       }
       
@@ -167,15 +165,10 @@ export function ResultView({ onBack, component }: ResultViewProps) {
         </TabsList>
         
         {activeTab === "preview" && (
-          <div className="flex justify-center items-center p-12 border rounded-lg mt-2">
-            {processedPreviewHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: processedPreviewHtml }} />
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <p>No preview available</p>
-              </div>
-            )}
-          </div>
+          <div 
+            className="border rounded-lg mt-2 flex justify-center items-center p-4"
+            dangerouslySetInnerHTML={{ __html: processedPreviewHtml || '<div class="text-center p-4">No preview available</div>' }}
+          />
         )}
         
         {activeTab === "code" && (
