@@ -124,71 +124,75 @@ The preview_html should ONLY contain the actual component HTML with NO extra con
         
         # Enviar la solicitud a la API de QWEN
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, json=payload, timeout=60) as response:
-                print(f"[DEBUG] Código de respuesta de API: {response.status}")
-                
-                response_text = await response.text()
-                print(f"[DEBUG] Respuesta completa: {response_text[:500]}...")
-                
-                if response.status == 200:
-                    try:
-                        response_json = json.loads(response_text)
-                        print(f"[DEBUG] Respuesta parseada: {str(response_json)[:200]}...")
-                        
-                        # Intentar extraer el mensaje
-                        if "output" in response_json:
-                            output = response_json.get("output", {})
-                            print(f"[DEBUG] Output: {str(output)[:200]}...")
+            try:
+                async with session.post(url, headers=headers, json=payload, timeout=120) as response:
+                    print(f"[DEBUG] Código de respuesta de API: {response.status}")
+                    
+                    response_text = await response.text()
+                    print(f"[DEBUG] Respuesta completa: {response_text[:500]}...")
+                    
+                    if response.status == 200:
+                        try:
+                            response_json = json.loads(response_text)
+                            print(f"[DEBUG] Respuesta parseada: {str(response_json)[:200]}...")
                             
-                            if "message" in output:
-                                assistant_message = output.get("message", {}).get("content", "")
-                            elif "choices" in output and len(output["choices"]) > 0:
-                                assistant_message = output["choices"][0]["message"]["content"]
-                            else:
-                                print("[DEBUG] No se encontró el mensaje en los formatos esperados")
-                                assistant_message = str(output)
-                            
-                            print(f"[DEBUG] Mensaje extraído: {assistant_message[:200]}...")
-                            
-                            # Intentar extraer el JSON del mensaje
-                            try:
-                                # Buscar el contenido JSON dentro de los backticks
-                                import re
-                                json_match = re.search(r'```json\s*(.*?)\s*```', assistant_message, re.DOTALL)
-                                if json_match:
-                                    json_content = json_match.group(1)
-                                    component_data = json.loads(json_content)
-                                    
-                                    # Asegurarse de que el HTML no tenga divs contenedores adicionales
-                                    if "preview_html" in component_data:
-                                        preview_html = component_data["preview_html"]
-                                        
-                                        # Eliminar cualquier div wrapper que solo contenga otro elemento
-                                        preview_html = re.sub(r'<div[^>]*>\s*(<[^>]+>[^<]*</[^>]+>)\s*</div>', r'\1', preview_html)
-                                        
-                                        # Si el HTML es solo texto, envolverlo en un elemento span
-                                        if not re.search(r'<[^>]+>', preview_html):
-                                            preview_html = f'<span style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 4px;">{preview_html}</span>'
-                                        
-                                        component_data["preview_html"] = preview_html
-                                    
-                                    return {
-                                        "status": "success",
-                                        "message": component_data
-                                    }
+                            # Intentar extraer el mensaje
+                            if "output" in response_json:
+                                output = response_json.get("output", {})
+                                print(f"[DEBUG] Output: {str(output)[:200]}...")
+                                
+                                if "message" in output:
+                                    assistant_message = output.get("message", {}).get("content", "")
+                                elif "choices" in output and len(output["choices"]) > 0:
+                                    assistant_message = output["choices"][0]["message"]["content"]
                                 else:
-                                    raise ValueError("No se encontró JSON válido en la respuesta")
-                            except Exception as e:
-                                print(f"[DEBUG] Error procesando JSON: {str(e)}")
+                                    print("[DEBUG] No se encontró el mensaje en los formatos esperados")
+                                    assistant_message = str(output)
+                                
+                                print(f"[DEBUG] Mensaje extraído: {assistant_message[:200]}...")
+                                
+                                # Intentar extraer el JSON del mensaje
+                                try:
+                                    # Buscar el contenido JSON dentro de los backticks
+                                    import re
+                                    json_match = re.search(r'```json\s*(.*?)\s*```', assistant_message, re.DOTALL)
+                                    if json_match:
+                                        json_content = json_match.group(1)
+                                        component_data = json.loads(json_content)
+                                        
+                                        # Asegurarse de que el HTML no tenga divs contenedores adicionales
+                                        if "preview_html" in component_data:
+                                            preview_html = component_data["preview_html"]
+                                            
+                                            # Eliminar cualquier div wrapper que solo contenga otro elemento
+                                            preview_html = re.sub(r'<div[^>]*>\s*(<[^>]+>[^<]*</[^>]+>)\s*</div>', r'\1', preview_html)
+                                            
+                                            # Si el HTML es solo texto, envolverlo en un elemento span
+                                            if not re.search(r'<[^>]+>', preview_html):
+                                                preview_html = f'<span style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 4px;">{preview_html}</span>'
+                                            
+                                            component_data["preview_html"] = preview_html
+                                        
+                                        return {
+                                            "status": "success",
+                                            "message": component_data
+                                        }
+                                    else:
+                                        raise ValueError("No se encontró JSON válido en la respuesta")
+                                except Exception as e:
+                                    print(f"[DEBUG] Error procesando JSON: {str(e)}")
+                                    return create_fallback_component(prompt_content)
+                            else:
                                 return create_fallback_component(prompt_content)
-                        else:
+                        except Exception as e:
+                            print(f"[DEBUG] Error procesando respuesta: {str(e)}")
                             return create_fallback_component(prompt_content)
-                    except Exception as e:
-                        print(f"[DEBUG] Error procesando respuesta: {str(e)}")
+                    else:
+                        print(f"[DEBUG] Error status: {response.status}")
                         return create_fallback_component(prompt_content)
-                else:
-                    print(f"[DEBUG] Error status: {response.status}")
-                    return create_fallback_component(prompt_content)
+            except Exception as e:
+                print(f"[DEBUG] Excepción general: {str(e)}")
+                return create_fallback_component(prompt_content)
     except Exception as e:
         print(f"[DEBUG] Excepción general: {str(e)}")
         return create_fallback_component(prompt_content)

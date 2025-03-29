@@ -18,6 +18,14 @@
  
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    /* Soft blue colors */
+    --soft-blue: 210 100% 90%;
+    --soft-blue-hover: 210 100% 85%;
+    --soft-blue-foreground: 210 100% 30%;
+    
+    --soft-blue-active: 210 90% 60%;
+    --soft-blue-active-foreground: 210 100% 98%;
  
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
@@ -50,6 +58,14 @@
  
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+    
+    /* Soft blue colors for dark mode */
+    --soft-blue: 210 70% 30%;
+    --soft-blue-hover: 210 70% 35%;
+    --soft-blue-foreground: 210 100% 90%;
+    
+    --soft-blue-active: 210 80% 50%;
+    --soft-blue-active-foreground: 210 100% 98%;
  
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
@@ -72,5 +88,91 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom button styles for soft blue */
+.btn-soft-blue {
+  background-color: hsl(var(--soft-blue));
+  color: hsl(var(--soft-blue-foreground));
+  transition: all 0.2s ease;
+}
+
+.btn-soft-blue:hover {
+  background-color: hsl(var(--soft-blue-hover));
+}
+
+.btn-soft-blue-active {
+  background-color: hsl(var(--soft-blue-active));
+  color: hsl(var(--soft-blue-active-foreground));
+}
+
+/* Fix for dropdown menu visibility */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* Template option button styles */
+.template-option {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.template-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.template-option:active {
+  transform: translateY(0);
+}
+
+.template-option:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.template-option:hover:after {
+  opacity: 1;
+}
+
+/* Add smooth transitions to all buttons */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estilos personalizados para las pestañas */
+.tab-content[data-state="inactive"] {
+  display: none;
+}
+
+.tab-content[data-state="active"] {
+  display: block;
+}
+
+/* Custom dropdown styles */
+#save-dropdown-container .absolute {
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }

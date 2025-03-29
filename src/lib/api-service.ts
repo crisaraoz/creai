@@ -14,6 +14,9 @@ interface ApiResponse {
   message?: string;
 }
 
+// Simple cache for component modifications
+const modificationCache: Record<string, ComponentData> = {};
+
 /**
  * Función para extraer HTML limpio de un string potencialmente con formato JSON
  */
@@ -33,9 +36,21 @@ function extractCleanHtml(htmlString: string): string {
     cleaned = cleaned.substring(1, cleaned.length - 1);
   }
   
-  // Buscar etiquetas HTML completas
-  const htmlMatch = cleaned.match(/<div[\s\S]*?<\/div>/);
-  if (htmlMatch) return htmlMatch[0];
+  // Instead of just extracting div tags, check if we have proper HTML structure
+  if (!cleaned.includes('<') && !cleaned.includes('>')) {
+    // If no HTML tags at all, wrap in a basic div
+    return `<div style="padding:10px;text-align:center;">${cleaned}</div>`;
+  }
+  
+  // If we have an icon without proper container, wrap it
+  if (cleaned.includes('</svg>') && !cleaned.includes('<div') && !cleaned.includes('<header')) {
+    return `<div style="background-color:black;padding:10px;display:flex;justify-content:space-between;align-items:center;width:100%;">${cleaned}</div>`;
+  }
+  
+  // For header components specifically, ensure we have background color
+  if (cleaned.includes('<header') && !cleaned.includes('background-color') && !cleaned.includes('backgroundColor')) {
+    cleaned = cleaned.replace('<header', '<header style="background-color:black;padding:10px;display:flex;justify-content:space-between;align-items:center;"');
+  }
   
   return cleaned;
 }
@@ -130,6 +145,15 @@ export async function generateComponent(prompt: string, platform: string): Promi
  * Modifica un componente existente basado en el prompt de modificación
  */
 export async function modifyComponent(modifyPrompt: string, currentCode: string): Promise<ComponentData> {
+  // Generate a cache key based on the prompt and code
+  const cacheKey = `${modifyPrompt}-${currentCode.substring(0, 100)}`;
+  
+  // Check if we have a cached response
+  if (modificationCache[cacheKey]) {
+    console.log("Using cached modification result");
+    return modificationCache[cacheKey];
+  }
+  
   try {
     const response = await fetch(`${API_URL}/generate-component`, {
       method: 'POST',
@@ -174,6 +198,9 @@ export async function modifyComponent(modifyPrompt: string, currentCode: string)
       if (typeof componentData === 'object' && componentData.preview_html) {
         componentData.preview_html = extractCleanHtml(componentData.preview_html);
       }
+      
+      // Cache the result
+      modificationCache[cacheKey] = componentData as ComponentData;
       
       return componentData as ComponentData;
     } else {
