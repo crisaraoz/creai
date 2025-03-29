@@ -2,8 +2,6 @@
 
 A modern UI component generator that uses AI to create customizable UI components based on text descriptions. Design beautiful components for web and mobile applications without writing code from scratch.
 
-![Component CreAI](https://via.placeholder.com/800x400?text=Component+CreAI)
-
 ## 🚀 Features
 
 - **AI-Powered Component Generation**: Create UI components by simply describing what you want
