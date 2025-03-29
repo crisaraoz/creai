@@ -18,15 +18,22 @@ See how easy it is to create components with Component CreAI:
 ![Generated component](./assets/images/generated-component.png)
 
 ### Mobile Version
-
-#### 1. Start with a description
-![Mobile initial screen](./assets/images/initial-screen-mobile.png)
-
-#### 2. Enter your component details
-![Mobile component description](./assets/images/component-description-mobile.png)
-
-#### 3. Get your generated component
-![Mobile generated component](./assets/images/generated-component-mobile.png)
+<table>
+  <tr>
+    <td align="center">
+      <p><strong>1. Start</strong></p>
+      <img src="./assets/images/initial-screen-mobile.png" alt="Mobile initial screen" width="230" />
+    </td>
+    <td align="center">
+      <p><strong>2. Details</strong></p>
+      <img src="./assets/images/component-description-mobile.png" alt="Mobile component description" width="230" />
+    </td>
+    <td align="center">
+      <p><strong>3. Result</strong></p>
+      <img src="./assets/images/generated-component-mobile.png" alt="Mobile generated component" width="230" />
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Features
 
