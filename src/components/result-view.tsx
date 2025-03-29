@@ -8,9 +8,24 @@ import { ComponentData, modifyComponent } from '@/lib/api-service';
 interface ResultViewProps {
   onBack: () => void;
   component: ComponentData | string;
+  onModify?: (modifyPrompt: string) => void;
+  onModifySuccess?: () => void;
+  onModifyError?: (error: string) => void;
+  showTabs?: boolean;
+  showDescription?: boolean;
+  showBackButton?: boolean;
 }
 
-export function ResultView({ onBack, component }: ResultViewProps) {
+export function ResultView({ 
+  onBack, 
+  component, 
+  onModify, 
+  onModifySuccess, 
+  onModifyError,
+  showTabs = true,
+  showDescription = true,
+  showBackButton = true
+}: ResultViewProps) {
   const [modifyPrompt, setModifyPrompt] = useState('');
   const [isModifying, setIsModifying] = useState(false);
   const [componentData, setComponentData] = useState<ComponentData>(() => {
@@ -82,6 +97,11 @@ export function ResultView({ onBack, component }: ResultViewProps) {
 
     setError('');
     setIsModifying(true);
+    
+    // Notificar el inicio de la modificación
+    if (onModify) {
+      onModify(modifyPrompt);
+    }
 
     try {
       // Utilizar el servicio API para modificar el componente
@@ -91,9 +111,20 @@ export function ResultView({ onBack, component }: ResultViewProps) {
       );
       
       setComponentData(newComponentData);
+      
+      // Notificar el éxito de la modificación
+      if (onModifySuccess) {
+        onModifySuccess();
+      }
     } catch (error: unknown) {
       console.error('Error modifying component:', error);
-      setError(error instanceof Error ? error.message : 'Error connecting to the service');
+      const errorMessage = error instanceof Error ? error.message : 'Error connecting to the service';
+      setError(errorMessage);
+      
+      // Notificar el error de la modificación
+      if (onModifyError) {
+        onModifyError(errorMessage);
+      }
     } finally {
       setIsModifying(false);
       setModifyPrompt('');
@@ -109,25 +140,29 @@ export function ResultView({ onBack, component }: ResultViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack}>← Back</Button>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => copyToClipboard(componentCode)}>
-            Copy Code
-          </Button>
-          <Button>Save Component</Button>
+      {showBackButton && (
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onBack}>← Back</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => copyToClipboard(componentCode)}>
+              Copy Code
+            </Button>
+            <Button>Save Component</Button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Component Description Section - Siempre mostramos este div pero con mensaje adecuado */}
-      <div className="bg-muted rounded-xl p-4 mb-4">
-        <h3 className="font-medium mb-2">Component Description</h3>
-        <p className="text-sm text-muted-foreground whitespace-pre-line">
-          {processedDescription || "Component based on your description"}
-        </p>
-      </div>
+      {/* Component Description Section - Condicional */}
+      {showDescription && (
+        <div className="bg-muted rounded-xl p-4 mb-4">
+          <h3 className="font-medium mb-2">Component Description</h3>
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
+            {processedDescription || "Component based on your description"}
+          </p>
+        </div>
+      )}
 
-      {/* Modification Prompt */}
+      {/* Modification Prompt - Siempre se muestra */}
       <div className="bg-muted rounded-xl p-4">
         <Textarea 
           value={modifyPrompt}
@@ -152,31 +187,33 @@ export function ResultView({ onBack, component }: ResultViewProps) {
         )}
       </div>
 
-      {/* Preview and Code Tabs */}
-      <Tabs 
-        defaultValue="preview" 
-        className="w-full" 
-        value={activeTab}
-        onValueChange={setActiveTab}
-      >
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="preview">Preview</TabsTrigger>
-          <TabsTrigger value="code">Code</TabsTrigger>
-        </TabsList>
-        
-        {activeTab === "preview" && (
-          <div 
-            className="border rounded-lg mt-2 flex justify-center items-center p-4"
-            dangerouslySetInnerHTML={{ __html: processedPreviewHtml || '<div class="text-center p-4">No preview available</div>' }}
-          />
-        )}
-        
-        {activeTab === "code" && (
-          <div className="p-4 bg-muted rounded-lg font-mono text-sm mt-2">
-            <pre>{componentCode || `// No code generated yet`}</pre>
-          </div>
-        )}
-      </Tabs>
+      {/* Preview and Code Tabs - Condicional */}
+      {showTabs && (
+        <Tabs 
+          defaultValue="preview" 
+          className="w-full" 
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+          </TabsList>
+          
+          {activeTab === "preview" && (
+            <div 
+              className="border rounded-lg mt-2 flex justify-center items-center p-4"
+              dangerouslySetInnerHTML={{ __html: processedPreviewHtml || '<div class="text-center p-4">No preview available</div>' }}
+            />
+          )}
+          
+          {activeTab === "code" && (
+            <div className="p-4 bg-muted rounded-lg font-mono text-sm mt-2">
+              <pre>{componentCode || `// No code generated yet`}</pre>
+            </div>
+          )}
+        </Tabs>
+      )}
     </div>
   );
 }

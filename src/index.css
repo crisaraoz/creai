@@ -74,3 +74,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos personalizados para las pestañas */
+.tab-content[data-state="inactive"] {
+  display: none;
+}
+
+.tab-content[data-state="active"] {
+  display: block;
+}

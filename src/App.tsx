@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ResultView } from '@/components/result-view';
 import { generateComponent, ComponentData } from '@/lib/api-service';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function App() {
   const [prompt, setPrompt] = useState('');
@@ -13,6 +14,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedComponent, setGeneratedComponent] = useState<ComponentData | null>(null);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('preview');
 
   const options = [
     { icon: <Home size={20} />, label: 'Home screen' },
@@ -63,6 +65,14 @@ function App() {
     }
   };
 
+  const handleOptionClick = (option: string) => {
+    setPrompt(option);
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -81,23 +91,18 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        {showResult ? (
-          <ResultView 
-            component={generatedComponent || {}} 
-            onBack={() => setShowResult(false)} 
-          />
-        ) : (
+      <main className="container mx-auto px-6 py-8">
+        {!showResult ? (
           <>
-            <h1 className="text-2xl font-bold mb-6">What should we design?</h1>
+            <h1 className="text-2xl font-bold mb-6 max-w-2xl mx-auto">What should we design?</h1>
             
             {/* Input Area */}
-            <div className="bg-muted rounded-xl p-4 mb-8">
+            <div className="bg-muted rounded-xl p-3 mb-6 max-w-2xl mx-auto">
               <Textarea 
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe design you need..."
-                className="bg-transparent border-none mb-4 min-h-[100px] focus-visible:ring-0"
+                className="bg-transparent border-none mb-2 min-h-[40px] focus-visible:ring-0"
               />
               
               {/* Platform Toggle */}
@@ -122,57 +127,144 @@ function App() {
                     <span>Web</span>
                   </Button>
                 </div>
-                
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  className="flex items-center space-x-1"
-                  onClick={handleGenerate}
-                  disabled={isLoading || !prompt.trim()}
-                >
+                <div>
                   {isLoading ? (
-                    <span>Generating...</span>
+                    <Button disabled className="flex items-center gap-2">
+                      <span className="animate-spin mr-1">
+                        <Sparkles className="h-4 w-4" />
+                      </span>
+                      Generating...
+                    </Button>
                   ) : (
-                    <>
+                    <Button onClick={handleGenerate} className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4" />
-                      <span>Generate</span>
-                    </>
+                      Generate
+                    </Button>
                   )}
-                </Button>
+                </div>
               </div>
-              
-              {error && (
-                <div className="mt-2 text-red-500 text-sm">{error}</div>
-              )}
             </div>
 
-            {/* Options Grid */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {displayedOptions.map((option, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="justify-start space-x-2 bg-accent/50 hover:bg-accent"
-                  >
-                    {option.icon}
-                    <span>{option.label}</span>
-                  </Button>
-                ))}
-              </div>
-              
-              {!showAllOptions && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowAllOptions(true)}
+            {/* Template Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 max-w-2xl mx-auto">
+              {displayedOptions.map((option, index) => (
+                <Button 
+                  key={index}
+                  variant="outline" 
+                  className="justify-start h-auto py-3 px-4"
+                  onClick={() => handleOptionClick(option.label)}
                 >
-                  <ChevronDown className="h-4 w-4 mr-2" />
+                  <div className="flex items-center">
+                    <span className="mr-3">{option.icon}</span>
+                    <span>{option.label}</span>
+                  </div>
+                </Button>
+              ))}
+            </div>
+
+            {/* Show All Button */}
+            {!showAllOptions && (
+              <div className="max-w-2xl mx-auto">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowAllOptions(true)}
+                  className="flex items-center gap-1 text-muted-foreground"
+                >
+                  <ChevronDown className="h-4 w-4" />
                   Show all
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Errors */}
+            {error && (
+              <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
+                {error}
+              </div>
+            )}
           </>
+        ) : (
+          // Resultado con layout de dos columnas
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Panel izquierdo - Descripción y Modificador */}
+            <div className="lg:col-span-1">
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowResult(false)}
+                  >
+                    ← Back
+                  </Button>
+                </div>
+                
+                <div className="bg-muted rounded-xl p-4 mb-4 flex-grow">
+                  <h3 className="font-medium mb-2">Component Description</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    {generatedComponent?.visual_description || "Component based on your description"}
+                  </p>
+                </div>
+                
+                <ResultView 
+                  component={generatedComponent || {}} 
+                  onBack={() => setShowResult(false)} 
+                  onModify={(modifyPrompt) => {
+                    console.log(`Modifying component: "${modifyPrompt}"`);
+                  }}
+                  onModifySuccess={() => {
+                    console.log(`Component modified successfully`);
+                  }}
+                  onModifyError={(error) => {
+                    console.log(`Modification error: ${error}`);
+                  }}
+                  showTabs={false}
+                  showDescription={false}
+                  showBackButton={false}
+                />
+              </div>
+            </div>
+            
+            {/* Panel derecho - Preview y código */}
+            <div className="lg:col-span-2">
+              <div className="flex justify-end mb-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => navigator.clipboard.writeText(generatedComponent?.component_code || '')}>
+                    Copy Code
+                  </Button>
+                  <Button>Save Component</Button>
+                </div>
+              </div>
+              
+              <Tabs defaultValue="preview" className="w-full" onValueChange={handleTabChange}>
+                <TabsList className="w-full justify-start">
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                  <TabsTrigger value="code">Code</TabsTrigger>
+                </TabsList>
+                
+                <div className="mt-2">
+                  {generatedComponent && (
+                    <>
+                      <div className="tab-content" data-state={activeTab === 'preview' ? 'active' : 'inactive'}>
+                        <div 
+                          className="border rounded-lg flex justify-center items-center p-4"
+                          dangerouslySetInnerHTML={{ 
+                            __html: generatedComponent.preview_html || '<div class="text-center p-4">No preview available</div>' 
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="tab-content" data-state={activeTab === 'code' ? 'active' : 'inactive'}>
+                        <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                          <pre>{generatedComponent.component_code || `// No code generated yet`}</pre>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </Tabs>
+            </div>
+          </div>
         )}
       </main>
     </div>
